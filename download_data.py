@@ -3,6 +3,7 @@ To adapt it for another challenge, change the CHALLENGE_NAME and upload
 public/private data as `tar.gz` archives in dedicated OSF folders named after
 the challenge.
 """
+
 import tarfile
 import argparse
 from zlib import adler32
