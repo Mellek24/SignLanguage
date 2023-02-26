@@ -11,6 +11,12 @@ from rampwf.utils.importing import import_module_from_source
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
+import json
+import torch
+import torchvision.transforms as transforms
+from PIL import Image
+from sklearn.preprocessing import LabelEncoder
+
 
 # --------------------------------------------------
 #
@@ -87,3 +93,69 @@ def plot_video_frames(video):
         axes[i].axis('off')
             
     plt.show()
+
+def get_data(split):
+    with open('data/WLASL_v0.3.json') as f:
+        data = json.load(f)
+    paths = []
+    labels = []
+    for d in data:
+        for instance in d['instances']:
+            if instance['split'] == split:
+                path = 'data/raw_videos/'+instance['video_id']+'.mp4'
+                if os.path.exists(path):
+                    paths.append(path)
+                    labels.append(d['gloss'])
+    return paths, labels
+
+def get_train_data():
+    return get_data('train')
+
+def get_test_data():
+    return get_data('test')
+
+
+class WLSLDataset(torch.utils.data.Dataset):
+    def __init__(self, paths, labels, max_frames=100):
+        self.paths = paths
+        self.labels = labels
+        self.max_frames = max_frames
+        self.transform = transforms.Compose([
+            transforms.Resize((224,224)),
+            transforms.ToTensor()
+        ])
+        self.le = LabelEncoder()
+        # encode the labels using sklearn LabelEncoder
+        self.labels = self.le.fit_transform(self.labels)
+
+    def __getitem__(self, index):
+        path = self.paths[index]
+        label = self.labels[index]
+        
+        #
+        
+        video_tensor = torch.zeros((self.max_frames,3, 224, 224))
+        
+        cap = cv2.VideoCapture(path)
+        
+        # Loop through the frames
+        i = 0
+        while(cap.isOpened()):
+            ret, frame = cap.read()
+            if ret == False or i>=self.max_frames:
+                break  
+            # convert to RGB
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_transformed = self.transform(Image.fromarray(frame))
+            video_tensor[i] = frame_transformed
+            i += 1
+        # Release the video capture object
+        cap.release()
+            
+        return video_tensor, label
+
+    def __len__(self):
+        return len(self.paths)
+
+
+
