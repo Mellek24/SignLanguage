@@ -1,7 +1,7 @@
-[![build](https://github.com/ramp-kits/bovine_embryo_survival_prediction/actions/workflows/testing.yml/badge.svg)](https://github.com/ramp-kits/bovine_embryo_survival_prediction/actions/workflows/testing.yml)
-# Bovine embryos survival prediction data Challenge
 
-Starting kit for the `bovine_embryo_survival_prediction` Challenge: early prediction of the fate of bovine embryos.
+# Sign language Challenge
+
+Starting kit for the `Sign Language` Challenge: prediction of American Sign Language words from videos.
 
 
 # Setup
