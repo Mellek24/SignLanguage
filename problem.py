@@ -3,22 +3,21 @@ import pandas as pd
 import numpy as np
 import rampwf as rw
 
-from sklearn.model_selection import StratifiedShuffleSplit
 from rampwf.score_types.base import BaseScoreType
-from sklearn.model_selection import ShuffleSplit
-from sklearn.metrics import accuracy_score, top_k_accuracy_score
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score
 
 problem_title = 'Classification of word-level american sign language videos'
 
 _prediction_label_name = []  # to complete
 # A type (class) which will be used to create wrapper objects for y_pred
-Predictions = rw.prediction_types.make_multiclass()
+_prediction_label_names = list(range(0, 2000))
+Predictions = rw.prediction_types.make_multiclass(label_names=_prediction_label_names)
 # An object implementing the workflow
 workflow = rw.workflows.Classifier()
 
+
 class Accuracy(BaseScoreType):
-    minimum = 0.0
-    maximum = 1.0
 
     def __init__(self, name='accuracy', precision=5):
         self.name = name
