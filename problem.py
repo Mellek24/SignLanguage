@@ -18,28 +18,6 @@ from PIL import Image
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 
-# --------------------------------------------------
-#
-# Challenge title
-
-problem_title = "Bovine embryos survival prediction"
-
-
-# --------------------------------------------------
-#
-# Select Prediction type
-
-_prediction_label_names = ["A", "B", "C", "D", "E", "F", "G", "H"]
-
-pred_times = [27, 32, 37, 40, 44, 48, 53, 58, 63, 94]
-Predictions = rw.prediction_types.make_multiclass(
-    label_names=_prediction_label_names * len(pred_times)
-)
-
-# --------------------------------------------------
-#
-# Select Workflow
-
 def read_video(path):
     # Open the video file
     cap = cv2.VideoCapture(path)
@@ -124,8 +102,8 @@ class WLSLDataset(torch.utils.data.Dataset):
             transforms.Resize((224,224)),
             transforms.ToTensor()
         ])
-        self.ohe = LabelEncoder()
-        self.labels = self.ohe.fit_transform(self.labels)
+        self.le = LabelEncoder()
+        self.labels = self.le.fit_transform(self.labels)
         self.nb_classes = self.labels.max()
 
     def __getitem__(self, index):
