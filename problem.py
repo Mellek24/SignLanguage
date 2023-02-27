@@ -16,6 +16,7 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+import pickle
 
 
 # --------------------------------------------------
@@ -106,6 +107,13 @@ def get_data(split):
                 if os.path.exists(path):
                     paths.append(path)
                     labels.append(d['gloss'])
+    # read the labels_dict 
+    with open('data/labels_dict.pkl', 'rb') as f:
+        labels_dict = pickle.load(f)
+        
+    for i in range(len(labels)):
+        labels[i] = labels_dict[labels[i]]
+        
     return paths, labels
 
 def get_train_data():
@@ -124,14 +132,14 @@ class WLSLDataset(torch.utils.data.Dataset):
             transforms.Resize((224,224)),
             transforms.ToTensor()
         ])
-        self.ohe = OneHotEncoder()
-        self.labels = self.ohe.fit_transform(self.labels.reshape(-1,1)).toarray()
-        self.nb_classes = self.labels.shape[1]
+        
+        # count the number of classes
+        self.nb_classes = 2000
 
     def __getitem__(self, index):
         path = self.paths[index]
         label = self.labels[index]
-        #
+    
         
         video_tensor = torch.zeros((self.max_frames,3, 224, 224))
         
