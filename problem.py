@@ -12,7 +12,7 @@ problem_title = 'Classification of word-level american sign language videos'
 
 _prediction_label_name = []  # to complete
 # A type (class) which will be used to create wrapper objects for y_pred
-_prediction_label_names = list(range(0, 2000))
+_prediction_label_names = list(range(0, 1997))
 Predictions = rw.prediction_types.make_multiclass(label_names=_prediction_label_names)
 # An object implementing the workflow
 workflow = rw.workflows.Classifier()
@@ -50,7 +50,7 @@ score_types = [
 
 
 def get_cv(X, y):
-    cv = StratifiedKFold(n_splits=3, random_state=42)
+    cv = StratifiedKFold(n_splits=2, random_state=42)
     return cv.split(X, y)
 
 
