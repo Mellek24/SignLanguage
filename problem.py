@@ -15,7 +15,7 @@ import json
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 
 # --------------------------------------------------
@@ -125,13 +125,13 @@ class WLSLDataset(torch.utils.data.Dataset):
             transforms.ToTensor()
         ])
         self.le = LabelEncoder()
-        # encode the labels using sklearn LabelEncoder
-        self.labels = self.le.fit_transform(self.labels)
+        self.ohe = OneHotEncoder()
+        self.labels = self.ohe.fit_transform(self.le.fit_transform(self.labels).reshape(-1,1)).toarray()
+        self.nb_classes = self.labels.shape[1]
 
     def __getitem__(self, index):
         path = self.paths[index]
         label = self.labels[index]
-        
         #
         
         video_tensor = torch.zeros((self.max_frames,3, 224, 224))
