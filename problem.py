@@ -6,15 +6,15 @@ import rampwf as rw
 from sklearn.model_selection import StratifiedShuffleSplit
 from rampwf.score_types.base import BaseScoreType
 from sklearn.model_selection import ShuffleSplit
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, top_k_accuracy_score
 
 problem_title = 'Classification of word-level american sign language videos'
 
-_target_column_name = 'pct_admitted_female_among_admitted'
+_prediction_label_name = []  # to complete
 # A type (class) which will be used to create wrapper objects for y_pred
 Predictions = rw.prediction_types.make_multiclass()
 # An object implementing the workflow
-workflow = rw.workflows.Estimator()
+workflow = rw.workflows.Classifier()
 
 class Accuracy(BaseScoreType):
     minimum = 0.0
@@ -28,13 +28,31 @@ class Accuracy(BaseScoreType):
         return accuracy_score(y_true, y_pred)
 
 
+class KTopAccuracy(BaseScoreType):
+
+    def __init__(self, name='k_top_accuracy', precision=5, k=5):
+        self.name = name
+        self.precision = precision
+        self.k = k
+
+    # predictions are the probs for each class
+    def __call__(self, y_true, y_pred):
+        #sorted_indices = np.argsort(predictions, axis=1)[:, -self.k:]
+        #correct = np.array([y_true[i] in sorted_indices[i] for i in range(len(y_true))])
+        return top_k_accuracy_score(y_true, y_pred, k=self.k, normalize=True)
+
+
 score_types = [
     Accuracy(name='accuracy', precision=5),
+    KTopAccuracy(name='5_top_accuracy', precision=5, k=5),
+    KTopAccuracy(name='10_top_accuracy', precision=5, k=10)
 ]
 
+
 def get_cv(X, y):
-    cv = ShuffleSplit(n_splits=8, test_size=0.20, random_state=42)
+    cv = StratifiedKFold(n_splits=3, random_state=42)
     return cv.split(X, y)
+
 
 
 def _read_data(path, f_name):
