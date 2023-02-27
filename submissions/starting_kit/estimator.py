@@ -3,8 +3,6 @@ from torch import optim
 import sys
 import os
 from pathlib import Path
-#from torchvision.models import resnet101
-import torch.nn.functional as F
 from problem import WLSLDataset
 import cv2
 from PIL import Image
@@ -19,27 +17,27 @@ problem_title = 'Sign Language Classification'
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 class Net(nn.Module):
-    def __init__(self, nb_classes):
+    def __init__(self, nb_classes, hidden_size = 128):
         super(Net, self).__init__()
-        self.net = nn.Linear(100, 128)
+        self.net = nn.Linear(100, hidden_size)
         self.act = nn.ReLU()
-        self.output = nn.Linear(128, nb_classes)
+        self.output = nn.Linear(hidden_size, nb_classes)
        
     def forward(self, x):
         x = x.view(-1, 3, 100, 224*224)
         x = torch.mean(x,[1,3])
         y = self.act(self.net(x))
         return(self.output(y))
- 
+
 
 class Classifier(BaseEstimator):
 
-    def fit(self, X, y):
+    def fit(self, X, y, nb_epochs = 10):
         self.dataset = WLSLDataset(X, y, max_frames=100)
-        dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=16, shuffle=True)
+        dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=32, shuffle=True)
         criterion = nn.MSELoss()
         self.model = Net(nb_classes = self.dataset.nb_classes)
-        optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        optimizer = optim.Adam(self.model.parameters(), lr=0.01)
   
         for i, data in enumerate(dataloader):
             # get the inputs; data is a list of [inputs, labels]
@@ -54,7 +52,7 @@ class Classifier(BaseEstimator):
             loss.backward()
             optimizer.step()
 
-            if i > 5 :
+            if i > nb_epochs :
                 break
 
         return self
