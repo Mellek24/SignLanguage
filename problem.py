@@ -118,15 +118,14 @@ def get_test_data():
 class WLSLDataset(torch.utils.data.Dataset):
     def __init__(self, paths, labels, max_frames=100):
         self.paths = paths
-        self.labels = labels
+        self.labels = np.array(labels)
         self.max_frames = max_frames
         self.transform = transforms.Compose([
             transforms.Resize((224,224)),
             transforms.ToTensor()
         ])
-        self.le = LabelEncoder()
         self.ohe = OneHotEncoder()
-        self.labels = self.ohe.fit_transform(self.le.fit_transform(self.labels).reshape(-1,1)).toarray()
+        self.labels = self.ohe.fit_transform(self.labels.reshape(-1,1)).toarray()
         self.nb_classes = self.labels.shape[1]
 
     def __getitem__(self, index):

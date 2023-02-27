@@ -6,14 +6,11 @@ from pathlib import Path
 #from torchvision.models import resnet101
 import torch.nn.functional as F
 from problem import WLSLDataset
+import cv2
+from PIL import Image
 sys.path.append(str(Path(os.path.dirname(__file__)).parent)) # Dirty but it works
-
-#from bop_scripts.preprocessing import remove_outliers
-#from bop_scripts.nn_models import torchMLPClassifier_sklearn, torchMLP
-#from bop_scripts.models import generate_model, fit_all_classifiers
 import torch
-import pandas as pd
-import numpy as np
+
 
 from sklearn.base import BaseEstimator
 
@@ -21,10 +18,6 @@ problem_title = 'Sign Language Classification'
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-# def torch_classifier_fn ():
-
-
-#     return torch_sklearn_classifier
 class Net(nn.Module):
     def __init__(self, nb_classes):
         super(Net, self).__init__()
@@ -42,17 +35,15 @@ class Net(nn.Module):
 class Classifier(BaseEstimator):
 
     def fit(self, X, y):
-        dataset = WLSLDataset(X, y, max_frames=100)
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=16, shuffle=True)
+        self.dataset = WLSLDataset(X, y, max_frames=100)
+        dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=16, shuffle=True)
         criterion = nn.MSELoss()
-        self.model = Net(nb_classes = dataset.nb_classes)
+        self.model = Net(nb_classes = self.dataset.nb_classes)
         optimizer = optim.Adam(self.model.parameters(), lr=0.001)
-
   
         for i, data in enumerate(dataloader):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
-
             # zero the parameter gradients
             optimizer.zero_grad()
 
@@ -69,8 +60,32 @@ class Classifier(BaseEstimator):
         return self
 
     def predict_proba(self, X):
-        dataset =  WLSLDataset(X, []*len(X))
-        return self.model(dataset)
+        videos_tensor = torch.zeros((len(X), self.dataset.max_frames,3, 224, 224))
+        for j, path in enumerate(X) :
+            cap = cv2.VideoCapture(path)
+            
+            # Loop through the frames
+            i = 0
+            while(cap.isOpened()):
+                ret, frame = cap.read()
+                if ret == False or i>=self.dataset.max_frames:
+                    break  
+                # convert to RGB
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame_transformed = self.dataset.transform(Image.fromarray(frame))
+                videos_tensor[j, i] = frame_transformed
+                i += 1
+            # Release the video capture object
+            cap.release()
+        return self.model(videos_tensor)
+        
+
 
     def predict(self, X):
-        return self.predict_proba(X)
+        probas = self.predict_proba(X)
+        most_likely_outputs = torch.argmax(probas, axis = 1)
+        predictions = torch.zeros_like(probas)
+        for i, most_likely_output in enumerate(most_likely_outputs) :
+            predictions[i,most_likely_output] = 1
+
+        return self.dataset.ohe.inverse_transform(predictions)
