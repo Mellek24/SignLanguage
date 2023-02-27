@@ -124,9 +124,9 @@ class WLSLDataset(torch.utils.data.Dataset):
             transforms.Resize((224,224)),
             transforms.ToTensor()
         ])
-        self.ohe = OneHotEncoder()
-        self.labels = self.ohe.fit_transform(self.labels.reshape(-1,1)).toarray()
-        self.nb_classes = self.labels.shape[1]
+        self.ohe = LabelEncoder()
+        self.labels = self.ohe.fit_transform(self.labels)
+        self.nb_classes = self.labels.max()
 
     def __getitem__(self, index):
         path = self.paths[index]

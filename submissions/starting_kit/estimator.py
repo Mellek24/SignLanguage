@@ -35,7 +35,7 @@ class Classifier(BaseEstimator):
     def fit(self, X, y, nb_epochs = 10):
         self.dataset = WLSLDataset(X, y, max_frames=100)
         dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=32, shuffle=True)
-        criterion = nn.MSELoss()
+        criterion = nn.CrossEntropyLoss()
         self.model = Net(nb_classes = self.dataset.nb_classes)
         optimizer = optim.Adam(self.model.parameters(), lr=0.01)
   
@@ -48,7 +48,7 @@ class Classifier(BaseEstimator):
             # forward + backward + optimize
             outputs = self.model(inputs)
 
-            loss = criterion(outputs, labels.to(torch.float32))
+            loss = criterion(outputs, labels)#.to(torch.float32))
             loss.backward()
             optimizer.step()
 
@@ -82,8 +82,8 @@ class Classifier(BaseEstimator):
     def predict(self, X):
         probas = self.predict_proba(X)
         most_likely_outputs = torch.argmax(probas, axis = 1)
-        predictions = torch.zeros_like(probas)
-        for i, most_likely_output in enumerate(most_likely_outputs) :
-            predictions[i,most_likely_output] = 1
-
-        return self.dataset.ohe.inverse_transform(predictions)
+        #predictions = torch.zeros_like(probas)
+        #for i, most_likely_output in enumerate(most_likely_outputs) :
+        #    predictions[i,most_likely_output] = 1
+        print(most_likely_outputs)
+        return self.dataset.ohe.inverse_transform(most_likely_outputs)
