@@ -94,7 +94,7 @@ def get_test_data():
 
 
 class WLSLDataset(torch.utils.data.Dataset):
-    def __init__(self, paths, labels, max_frames=100):
+    def __init__(self, paths, labels, max_frames=34):
         self.paths = paths
         self.labels = np.array(labels)
         self.max_frames = max_frames
@@ -117,11 +117,14 @@ class WLSLDataset(torch.utils.data.Dataset):
         
         # Loop through the frames
         i = 0
+        starting_frame = 10
         while(cap.isOpened()):
             ret, frame = cap.read()
             if ret == False or i>=self.max_frames:
                 break  
             # convert to RGB
+            if i < starting_frame:
+                continue
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_transformed = self.transform(Image.fromarray(frame))
             video_tensor[i] = frame_transformed
