@@ -8,6 +8,17 @@ from rampwf.score_types.base import BaseScoreType
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
 
+from rampwf.utils.importing import import_module_from_source
+import matplotlib.pyplot as plt
+import cv2
+import numpy as np
+import json
+import torch
+import torchvision.transforms as transforms
+from PIL import Image
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+
 problem_title = 'Classification of word-level american sign language videos'
 
 _prediction_label_name = []  # to complete
@@ -70,15 +81,7 @@ def get_train_data(path='.'):
 def get_test_data(path='.'):
     f_name = 'test.csv'
     return _read_data(path, f_name)
-from rampwf.utils.importing import import_module_from_source
-import matplotlib.pyplot as plt
-import cv2
-import numpy as np
-import json
-import torch
-import torchvision.transforms as transforms
-from PIL import Image
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
 
 
 def read_video(path):
