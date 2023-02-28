@@ -2,6 +2,10 @@
 
 import os
 import copy
+from rampwf.score_types.base import BaseScoreType
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score, top_k_accuracy_score
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -16,6 +20,56 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+
+problem_title = 'Classification of word-level american sign language videos'
+
+# A type (class) which will be used to create wrapper objects for y_pred
+_prediction_label_names = list(range(2000))
+
+Predictions = rw.prediction_types.make_multiclass(label_names=_prediction_label_names)
+
+# An object implementing the workflow
+workflow = rw.workflows.Classifier()
+
+
+class Accuracy(BaseScoreType):
+
+    def __init__(self, name='accuracy', precision=5):
+        self.name = name
+        self.precision = precision
+
+    def __call__(self, y_true, y_pred):
+        return accuracy_score(y_true, y_pred)
+
+
+class KTopAccuracy(BaseScoreType):
+
+    def __init__(self, name='k_top_accuracy', precision=5, k=5):
+        self.name = name
+        self.precision = precision
+        self.k = k
+
+    # predictions are the probs for each class
+    def __call__(self, y_true, y_pred):
+        #sorted_indices = np.argsort(predictions, axis=1)[:, -self.k:]
+        #correct = np.array([y_true[i] in sorted_indices[i] for i in range(len(y_true))])
+        return top_k_accuracy_score(y_true, y_pred, k=self.k, normalize=True)
+
+
+score_types = [
+    Accuracy(name='accuracy', precision=5),
+    KTopAccuracy(name='5_top_accuracy', precision=5, k=5),
+    KTopAccuracy(name='10_top_accuracy', precision=5, k=10)
+]
+
+
+def get_cv(X, y):
+    cv = StratifiedKFold(n_splits=2, random_state=42, shuffle=True) 
+    #ShuffleSplit(n_splits=2, test_size=0.2, random_state=42)
+    return cv.split(X, y)
+
+
 
 
 def read_video(path):
@@ -72,8 +126,8 @@ def plot_video_frames(video):
             
     plt.show()
 
-def get_data(split):
-    with open('data/WLASL_v0.3.json') as f:
+def get_data(split, path):
+    with open(path+'/data/WLASL_v0.3.json') as f:
         data = json.load(f)
     paths = []
     labels = []
@@ -84,13 +138,16 @@ def get_data(split):
                 if os.path.exists(path):
                     paths.append(path)
                     labels.append(d['gloss'])
-    return paths, labels
+    return np.array(paths), np.array(labels)
 
-def get_train_data():
-    return get_data('train')
+def get_train_data(path='.'):
+    return get_data('train', path)
 
-def get_test_data():
-    return get_data('test')
+def get_test_data(path='.'):
+    paths, labels = get_data('test', path)
+    paths_reduced = paths[:10]
+    labels_reduced = labels[:10]
+    return paths_reduced, labels_reduced
 
 
 class WLSLDataset(torch.utils.data.Dataset):
