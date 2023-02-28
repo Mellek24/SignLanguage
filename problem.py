@@ -120,6 +120,7 @@ class WLSLDataset(torch.utils.data.Dataset):
         starting_frame = 10
         while(cap.isOpened()):
             ret, frame = cap.read()
+            i += 1
             if ret == False or i>=self.max_frames:
                 break  
             # convert to RGB
@@ -128,7 +129,7 @@ class WLSLDataset(torch.utils.data.Dataset):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_transformed = self.transform(Image.fromarray(frame))
             video_tensor[i] = frame_transformed
-            i += 1
+            
         # Release the video capture object
         cap.release()
             

@@ -76,20 +76,21 @@ class Classifier(BaseEstimator):
         # use the video classifier
         self.model = VideoClassifier()
         optimizer = optim.Adam(self.model.parameters(), lr=0.01)
-  
-        for i, data in enumerate(dataloader):
-            # get the inputs; data is a list of [inputs, labels]
-            inputs, labels = data
-            # zero the parameter gradients
-            optimizer.zero_grad()
+        for epoch in nb_epochs :
+            for i, data in enumerate(dataloader):
+                # get the inputs; data is a list of [inputs, labels]
+                inputs, labels = data
+                # zero the parameter gradients
+                optimizer.zero_grad()
 
-            # forward + backward + optimize
-            outputs = self.model(inputs)
+                # forward + backward + optimize
+                outputs = self.model(inputs)
 
-            loss = criterion(outputs, labels)#.to(torch.float32))
-            loss.backward()
-            optimizer.step()
-            break
+                loss = criterion(outputs, labels)#.to(torch.float32))
+                loss.backward()
+                train_loss = loss.item()
+                optimizer.step()
+                print('Epoch:{} Train Loss:{:.4f}'.format(epoch,train_loss/inputs.shape[0]))
 
         return self
 
@@ -100,15 +101,19 @@ class Classifier(BaseEstimator):
             
             # Loop through the frames
             i = 0
+            starting_frame = 10
             while(cap.isOpened()):
                 ret, frame = cap.read()
+                i += 1
                 if ret == False or i>=self.dataset.max_frames:
                     break  
+                if i < starting_frame:
+                continue
                 # convert to RGB
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frame_transformed = self.dataset.transform(Image.fromarray(frame))
                 videos_tensor[j, i] = frame_transformed
-                i += 1
+                
             # Release the video capture object
             cap.release()
         return self.model(videos_tensor)
