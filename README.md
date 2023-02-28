@@ -20,4 +20,4 @@ python download_data.py
 
 # Get started with the challenge
 
-Open the jupyter notebook `Sign_language_starting_kit.ipynb` and follow the guide !
+Open the jupyter notebook `wlasl_starting_kit.ipynb` and follow the guide !
