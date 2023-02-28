@@ -159,7 +159,6 @@ class WLSLDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         path = self.paths[index]
         label = self.labels[index]
-        #
         
         video_tensor = torch.zeros((self.max_frames,3, 224, 224))
         
