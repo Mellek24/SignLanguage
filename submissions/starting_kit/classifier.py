@@ -4,8 +4,6 @@ import sys
 import os
 from pathlib import Path
 import numpy as np
-
-#from problem import WLSLDataset
 import cv2
 from PIL import Image
 sys.path.append(str(Path(os.path.dirname(__file__)).parent)) # Dirty but it works
@@ -18,7 +16,6 @@ from sklearn.base import BaseEstimator
 problem_title = 'Sign Language Classification'
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-#device = torch.device('mps') #if torch.has_mps else "cpu"
 
 
 
@@ -106,12 +103,12 @@ class VideoClassifier(nn.Module):
 class Net(nn.Module):
     def __init__(self, nb_classes, hidden_size = 128):
         super(Net, self).__init__()
-        self.net = nn.Linear(100, hidden_size)
+        self.net = nn.Linear(34, hidden_size)
         self.act = nn.ReLU()
         self.output = nn.Linear(hidden_size, nb_classes)
        
     def forward(self, x):
-        x = x.view(-1, 3, 100, 224*224)
+        x = x.view(-1, 3, 34, 224*224)
         x = torch.mean(x,[1,3])
         y = self.act(self.net(x))
         return(self.output(y))
@@ -120,12 +117,13 @@ class Net(nn.Module):
 class Classifier(BaseEstimator):
 
     def fit(self, X, y, nb_epochs = 1):
+        print('X fit : ', len(X))
         self.dataset = WLSLDataset(X, y, max_frames=34)
         dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=32, shuffle=True)
         criterion = nn.CrossEntropyLoss()
         #self.model = Net(nb_classes = self.dataset.nb_classes)
         # use the video classifier
-        self.model = VideoClassifier()
+        self.model = Net(nb_classes = 2000)
         optimizer = optim.Adam(self.model.parameters(), lr=0.01)
 
         for epoch in range(nb_epochs) :
@@ -143,15 +141,13 @@ class Classifier(BaseEstimator):
                 train_loss = loss.item()
                 optimizer.step()
                 print('Epoch:{} Train Loss:{:.4f}'.format(epoch,train_loss/inputs.shape[0]))
-                if i==1 :
+                if i==0 :
                     break
         print("error1")
         return self
 
     def predict_proba(self, X):
-        print("error2")
         videos_tensor = torch.zeros((len(X), self.dataset.max_frames,3, 224, 224))
-        print('error3')
         for j, path in enumerate(X) :
             cap = cv2.VideoCapture(path)
             
@@ -172,15 +168,11 @@ class Classifier(BaseEstimator):
                 
             # Release the video capture object
             cap.release()
-        print('error4')
-        return self.model(videos_tensor)
+        return nn.Softmax(dim = -1)(self.model(videos_tensor)).detach().numpy()
         
 
 
     def predict(self, X):
         probas = self.predict_proba(X)
         most_likely_outputs = torch.argmax(probas, axis = 1)
-        #predictions = torch.zeros_like(probas)
-        #for i, most_likely_output in enumerate(most_likely_outputs) :
-        #    predictions[i,most_likely_output] = 1
         return most_likely_outputs
