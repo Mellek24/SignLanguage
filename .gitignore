@@ -1,2 +1,3 @@
-data/raw_videos
 data/
+.DS_Store
+data/raw_videos
