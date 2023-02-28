@@ -5,7 +5,7 @@ import rampwf as rw
 
 from rampwf.score_types.base import BaseScoreType
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, top_k_accuracy_score
 
 from rampwf.utils.importing import import_module_from_source
 import matplotlib.pyplot as plt
@@ -21,9 +21,12 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 problem_title = 'Classification of word-level american sign language videos'
 
 _prediction_label_name = []  # to complete
+
 # A type (class) which will be used to create wrapper objects for y_pred
 _prediction_label_names = list(range(0, 1997))
+
 Predictions = rw.prediction_types.make_multiclass(label_names=_prediction_label_names)
+
 # An object implementing the workflow
 workflow = rw.workflows.Classifier()
 
@@ -62,24 +65,6 @@ score_types = [
 def get_cv(X, y):
     cv = StratifiedKFold(n_splits=2, random_state=42)
     return cv.split(X, y)
-
-
-
-def _read_data(path, f_name):
-    data = pd.read_csv(os.path.join(path, 'data', f_name))
-    y_array = data[_target_column_name].values
-    X_df = data.drop(_target_column_name, axis=1)
-    return X_df, y_array
-
-
-def get_train_data(path='.'):
-    f_name = 'train.csv'
-    return _read_data(path, f_name)
-
-
-def get_test_data(path='.'):
-    f_name = 'test.csv'
-    return _read_data(path, f_name)
 
 
 def read_video(path):
@@ -141,13 +126,14 @@ def get_data(split):
         data = json.load(f)
     paths = []
     labels = []
+    labels_dict = pd.read_pickle('./data/labels_dict.pkl')
     for d in data:
         for instance in d['instances']:
             if instance['split'] == split:
                 path = 'data/raw_videos/'+instance['video_id']+'.mp4'
                 if os.path.exists(path):
                     paths.append(path)
-                    labels.append(d['gloss'])
+                    labels.append(labels_dict[d['gloss']])
     return paths, labels
 
 def get_train_data():
@@ -166,8 +152,8 @@ class WLSLDataset(torch.utils.data.Dataset):
             transforms.Resize((224,224)),
             transforms.ToTensor()
         ])
-        self.le = LabelEncoder()
-        self.labels = self.le.fit_transform(self.labels)
+        #self.le = LabelEncoder()
+        #self.labels = self.le.fit_transform(self.labels)
         self.nb_classes = self.labels.max()
 
     def __getitem__(self, index):
