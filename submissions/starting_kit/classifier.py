@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 import numpy as np
 
-#from problem import WLSLDataset
 import cv2
 from PIL import Image
 sys.path.append(str(Path(os.path.dirname(__file__)).parent)) # Dirty but it works
@@ -18,8 +17,6 @@ from sklearn.base import BaseEstimator
 problem_title = 'Sign Language Classification'
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-#device = torch.device('mps') #if torch.has_mps else "cpu"
-
 
 
 import torch
@@ -142,16 +139,12 @@ class Classifier(BaseEstimator):
                 loss.backward()
                 train_loss = loss.item()
                 optimizer.step()
-                print('Epoch:{} Train Loss:{:.4f}'.format(epoch,train_loss/inputs.shape[0]))
-                if i==1 :
+                if i==15 :
                     break
-        print("error1")
         return self
 
     def predict_proba(self, X):
-        print("error2")
         videos_tensor = torch.zeros((len(X), self.dataset.max_frames,3, 224, 224))
-        print('error3')
         for j, path in enumerate(X) :
             cap = cv2.VideoCapture(path)
             
@@ -172,7 +165,6 @@ class Classifier(BaseEstimator):
                 
             # Release the video capture object
             cap.release()
-        print('error4')
         return self.model(videos_tensor)
         
 

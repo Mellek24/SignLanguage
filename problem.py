@@ -52,10 +52,7 @@ class KTopAccuracy(BaseScoreType):
         self.precision = precision
         self.k = k
 
-    # predictions are the probs for each class
     def __call__(self, y_true, y_pred):
-        #sorted_indices = np.argsort(predictions, axis=1)[:, -self.k:]
-        #correct = np.array([y_true[i] in sorted_indices[i] for i in range(len(y_true))])
         return top_k_accuracy_score(y_true, y_pred, k=self.k, normalize=True)
 
 
@@ -163,8 +160,6 @@ class WLSLDataset(torch.utils.data.Dataset):
             transforms.Resize((224,224)),
             transforms.ToTensor()
         ])
-        #self.le = LabelEncoder()
-        #self.labels = self.le.fit_transform(self.labels)
         self.nb_classes = self.labels.max()
 
     def __getitem__(self, index):

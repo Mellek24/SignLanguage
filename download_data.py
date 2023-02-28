@@ -71,7 +71,7 @@ def select_download_method(url):
         return download_others
 
 
-def download_nonyt_videos(indexfile, saveto='raw_videos'):
+def download_nonyt_videos(indexfile, saveto='./data/raw_videos'):
     content = json.load(open(indexfile))
 
     if not os.path.exists(saveto):
@@ -106,7 +106,7 @@ def check_youtube_dl_version():
     assert ver >= '2020.03.08', "Please update youtube-dl to newest version."
 
 
-def download_yt_videos(indexfile, saveto='raw_videos'):
+def download_yt_videos(indexfile, saveto='./data/raw_videos'):
     content = json.load(open(indexfile))
     
     if not os.path.exists(saveto):
