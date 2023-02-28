@@ -99,7 +99,6 @@ class VideoClassifier(nn.Module):
         return x
 
 
-#
 class Net(nn.Module):
     def __init__(self, nb_classes, hidden_size = 128):
         super(Net, self).__init__()
@@ -172,7 +171,5 @@ class Classifier(BaseEstimator):
     def predict(self, X):
         probas = self.predict_proba(X)
         most_likely_outputs = torch.argmax(probas, axis = 1)
-        #predictions = torch.zeros_like(probas)
-        #for i, most_likely_output in enumerate(most_likely_outputs) :
-        #    predictions[i,most_likely_output] = 1
+
         return most_likely_outputs

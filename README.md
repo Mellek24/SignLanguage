@@ -14,7 +14,7 @@ git com
 You can download the raw_videos via the dedicated python script to be called as follow 
 
 ```bash
-python data/download_data.py 
+python download_data.py 
 ```
 
 
