@@ -1,4 +1,10 @@
 import os
+import copy
+from rampwf.score_types.base import BaseScoreType
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score, top_k_accuracy_score
+
+import numpy as np
 import pandas as pd
 import numpy as np
 import rampwf as rw
@@ -20,10 +26,8 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 problem_title = 'Classification of word-level american sign language videos'
 
-_prediction_label_name = []  # to complete
-
 # A type (class) which will be used to create wrapper objects for y_pred
-_prediction_label_names = list(range(0, 1997))
+_prediction_label_names = list(range(2000))
 
 Predictions = rw.prediction_types.make_multiclass(label_names=_prediction_label_names)
 
@@ -63,8 +67,11 @@ score_types = [
 
 
 def get_cv(X, y):
-    cv = StratifiedKFold(n_splits=2, random_state=42)
+    cv = StratifiedKFold(n_splits=2, random_state=42, shuffle=True) 
+    #ShuffleSplit(n_splits=2, test_size=0.2, random_state=42)
     return cv.split(X, y)
+
+
 
 
 def read_video(path):
@@ -121,8 +128,8 @@ def plot_video_frames(video):
             
     plt.show()
 
-def get_data(split):
-    with open('data/WLASL_v0.3.json') as f:
+def get_data(split, path):
+    with open(path+'/data/WLASL_v0.3.json') as f:
         data = json.load(f)
     paths = []
     labels = []
@@ -134,17 +141,21 @@ def get_data(split):
                 if os.path.exists(path):
                     paths.append(path)
                     labels.append(labels_dict[d['gloss']])
-    return paths, labels
+                    
+    return np.array(paths), np.array(labels)
 
-def get_train_data():
-    return get_data('train')
+def get_train_data(path='.'):
+    return get_data('train', path)
 
-def get_test_data():
-    return get_data('test')
+def get_test_data(path='.'):
+    paths, labels = get_data('test', path)
+    paths_reduced = paths[:10]
+    labels_reduced = labels[:10]
+    return paths_reduced, labels_reduced
 
 
 class WLSLDataset(torch.utils.data.Dataset):
-    def __init__(self, paths, labels, max_frames=100):
+    def __init__(self, paths, labels, max_frames=34):
         self.paths = paths
         self.labels = np.array(labels)
         self.max_frames = max_frames
@@ -167,15 +178,19 @@ class WLSLDataset(torch.utils.data.Dataset):
         
         # Loop through the frames
         i = 0
+        starting_frame = 10
         while(cap.isOpened()):
             ret, frame = cap.read()
+            i += 1
             if ret == False or i>=self.max_frames:
                 break  
             # convert to RGB
+            if i < starting_frame:
+                continue
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_transformed = self.transform(Image.fromarray(frame))
             video_tensor[i] = frame_transformed
-            i += 1
+            
         # Release the video capture object
         cap.release()
             
