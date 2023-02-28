@@ -36,8 +36,6 @@ class Accuracy(BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true, y_pred):
-        print(np.argmax(y_true, axis = 1))
-        print(np.argmax(y_pred, axis = 1))
 
         return accuracy_score(np.argmax(y_true, axis = 1), np.argmax(y_pred, axis = 1))
 
@@ -50,8 +48,6 @@ class KTopAccuracy(BaseScoreType):
         self.k = k
 
     def __call__(self, y_true, y_pred):
-        #sorted_indices = np.argsort(predictions, axis=1)[:, -self.k:]
-        #correct = np.array([y_true[i] in sorted_indices[i] for i in range(len(y_true))])
         return top_k_accuracy_score(np.argmax(y_true, axis = 1), y_pred, k=self.k, labels = np.arange(2000), normalize=True)
 
 
@@ -64,11 +60,7 @@ score_types = [
 
 def get_cv(X, y):
     cv = StratifiedKFold(n_splits=2, random_state=42, shuffle=True) 
-    print('cv')
     #cv = ShuffleSplit(n_splits=2, test_size=10, train_size = 89, random_state=42)
-    train, test = next(cv.split(X,y) )
-    print('train : ', len(train))
-    print('test : ', len(test))
     return cv.split(X, y)
 
 
@@ -133,7 +125,6 @@ def get_data(split, path):
         data = json.load(f)
     with open('data/labels_dict.pkl', 'rb') as f:
         labels_encoding = pickle.load(f)
-    #print(labels_encoding)
     paths = []
     labels = []
     labels_dict = pd.read_pickle('./data/labels_dict.pkl')
