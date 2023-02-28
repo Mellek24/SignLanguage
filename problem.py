@@ -1,4 +1,3 @@
-
 import os
 import pandas as pd
 import numpy as np
@@ -81,7 +80,6 @@ def get_train_data(path='.'):
 def get_test_data(path='.'):
     f_name = 'test.csv'
     return _read_data(path, f_name)
-
 
 
 def read_video(path):
