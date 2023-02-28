@@ -85,5 +85,4 @@ class Classifier(BaseEstimator):
         #predictions = torch.zeros_like(probas)
         #for i, most_likely_output in enumerate(most_likely_outputs) :
         #    predictions[i,most_likely_output] = 1
-        print(most_likely_outputs)
-        return self.dataset.ohe.inverse_transform(most_likely_outputs)
+        return most_likely_outputs
