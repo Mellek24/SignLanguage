@@ -1,19 +1,13 @@
 import os
 import copy
+import pickle
 from rampwf.score_types.base import BaseScoreType
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, top_k_accuracy_score
 
 import numpy as np
 import pandas as pd
-import numpy as np
 import rampwf as rw
-
-from rampwf.score_types.base import BaseScoreType
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score, top_k_accuracy_score
-
-from rampwf.utils.importing import import_module_from_source
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
@@ -21,7 +15,7 @@ import json
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
 
 
 problem_title = 'Classification of word-level american sign language videos'
@@ -42,7 +36,10 @@ class Accuracy(BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true, y_pred):
-        return accuracy_score(y_true, y_pred)
+        print(np.argmax(y_true, axis = 1))
+        print(np.argmax(y_pred, axis = 1))
+
+        return accuracy_score(np.argmax(y_true, axis = 1), np.argmax(y_pred, axis = 1))
 
 
 class KTopAccuracy(BaseScoreType):
@@ -53,7 +50,9 @@ class KTopAccuracy(BaseScoreType):
         self.k = k
 
     def __call__(self, y_true, y_pred):
-        return top_k_accuracy_score(y_true, y_pred, k=self.k, normalize=True)
+        #sorted_indices = np.argsort(predictions, axis=1)[:, -self.k:]
+        #correct = np.array([y_true[i] in sorted_indices[i] for i in range(len(y_true))])
+        return top_k_accuracy_score(np.argmax(y_true, axis = 1), y_pred, k=self.k, labels = np.arange(2000), normalize=True)
 
 
 score_types = [
@@ -65,7 +64,11 @@ score_types = [
 
 def get_cv(X, y):
     cv = StratifiedKFold(n_splits=2, random_state=42, shuffle=True) 
-    #ShuffleSplit(n_splits=2, test_size=0.2, random_state=42)
+    print('cv')
+    #cv = ShuffleSplit(n_splits=2, test_size=10, train_size = 89, random_state=42)
+    train, test = next(cv.split(X,y) )
+    print('train : ', len(train))
+    print('test : ', len(test))
     return cv.split(X, y)
 
 
@@ -128,6 +131,9 @@ def plot_video_frames(video):
 def get_data(split, path):
     with open(path+'/data/WLASL_v0.3.json') as f:
         data = json.load(f)
+    with open('data/labels_dict.pkl', 'rb') as f:
+        labels_encoding = pickle.load(f)
+    #print(labels_encoding)
     paths = []
     labels = []
     labels_dict = pd.read_pickle('./data/labels_dict.pkl')
@@ -137,17 +143,19 @@ def get_data(split, path):
                 path = 'data/raw_videos/'+instance['video_id']+'.mp4'
                 if os.path.exists(path):
                     paths.append(path)
-                    labels.append(labels_dict[d['gloss']])
-                    
+                    labels.append(labels_encoding[d['gloss']])
     return np.array(paths), np.array(labels)
 
 def get_train_data(path='.'):
-    return get_data('train', path)
+    paths, labels = get_data('train', path)
+    paths_reduced = paths[:1000]
+    labels_reduced = labels[:1000]
+    return paths_reduced, labels_reduced
 
 def get_test_data(path='.'):
     paths, labels = get_data('test', path)
-    paths_reduced = paths[:10]
-    labels_reduced = labels[:10]
+    paths_reduced = paths[:500]
+    labels_reduced = labels[:500]
     return paths_reduced, labels_reduced
 
 
