@@ -1,22 +1,19 @@
 # ramp specifics
 ramp-workflow
-osfclient
 
 # generic datascience
 numpy
-scipy
 pandas
-matplotlib
-seaborn
 jupyter
-
+matplotlib
 scikit-learn
-tensorflow-gpu
+opencv
+torchvision
+pytorch
+cudatoolkit=10.2
+pillow
+pathlib
 
 # dev
 flake8
 black
-
-# utils
-cloudpickle
-pyyaml
