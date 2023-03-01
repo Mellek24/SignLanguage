@@ -136,7 +136,7 @@ class Classifier(BaseEstimator):
                 loss.backward()
                 train_loss = loss.item()
                 optimizer.step()
-                print('Epoch:{} Train Loss:{:.4f}'.format(epoch,train_loss/inputs.shape[0]))
+                #print('Epoch:{} Train Loss:{:.4f}'.format(epoch,train_loss/inputs.shape[0]))
                 if i==0 :
                     break
         return self
