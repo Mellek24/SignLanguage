@@ -30,8 +30,8 @@ class WLSLDataset(torch.utils.data.Dataset):
             transforms.Resize((224,224)),
             transforms.ToTensor()
         ])
-        self.le = LabelEncoder()
-        self.labels = self.le.fit_transform(self.labels)
+        #self.le = LabelEncoder()
+        #self.labels = self.le.fit_transform(self.labels)
         self.nb_classes = self.labels.max()
 
     def __getitem__(self, index):
@@ -115,11 +115,9 @@ class Net(nn.Module):
 class Classifier(BaseEstimator):
 
     def fit(self, X, y, nb_epochs = 1):
-        print('X fit : ', len(X))
         self.dataset = WLSLDataset(X, y, max_frames=34)
         dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=32, shuffle=True)
         criterion = nn.CrossEntropyLoss()
-        #self.model = Net(nb_classes = self.dataset.nb_classes)
         # use the video classifier
         self.model = Net(nb_classes = 2000)
         optimizer = optim.Adam(self.model.parameters(), lr=0.01)
