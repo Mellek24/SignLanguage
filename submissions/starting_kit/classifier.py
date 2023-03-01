@@ -30,8 +30,6 @@ class WLSLDataset(torch.utils.data.Dataset):
             transforms.Resize((224,224)),
             transforms.ToTensor()
         ])
-        #self.le = LabelEncoder()
-        #self.labels = self.le.fit_transform(self.labels)
         self.nb_classes = self.labels.max()
 
     def __getitem__(self, index):
